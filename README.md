@@ -6,12 +6,9 @@
 仮想マシンにログインして、開始のコマンドを実行します。
 
 ~~~
+$ vagrant up
 $ vagrant ssh
-
-<中略>
-
 $ sudo minikube start
-
 ~~~
 
 k8sが起動するまでに、2〜3分ほどかかります。次のコマンドで、全てのポッドがrunningになれば完了です。
@@ -33,8 +30,8 @@ http://172.16.20.10/ をアクセスするとダッシュボードが表示さ�
 ## 終了
 
 ~~~
-$ exit
 $ sudo minikube stop
+$ exit
 $ vagrant halt
 ~~~
 
