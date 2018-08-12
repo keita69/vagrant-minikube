@@ -41,3 +41,10 @@ $ vagrant halt
 ~~~
 $ vagrant destroy
 ~~~
+
+
+
+## 参考資料
+
+* https://github.com/kubernetes/minikube
+* https://kubernetes.io/docs/tasks/tools/install-minikube/#install-minikube
