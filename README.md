@@ -1,5 +1,8 @@
 # vagrant-minikube
 
+この Vagrant と Ansible のコードは、VirtualBox の仮想サーバー上に、Minikubeを起動するためのものです。
+Minikubeは、実行時の最新バージョンが起動されるようになっています。
+
 
 ## Minikube 開始方法
 
@@ -11,13 +14,26 @@ $ vagrant ssh
 $ sudo minikube start
 ~~~
 
-k8sが起動するまでに、2〜3分ほどかかります。次のコマンドで、全てのポッドがrunningになれば完了です。
+k8sが起動するまでに、10分ほどかかります。次のコマンドで、全てのポッドがrunningになれば完了です。
 
 ~~~
-$ kubectl get pod --all-namespaces
+$ kubectl get pod -n kube-system
 ~~~
 
-## ダッシュボード
+もしも、ポッドのなかで状態が、Terminating になっていたら、一度、Minikubeを停止させて再開してみてください。
+筆者の経験では、ほとんどのケースで解決しています。
+
+~~~
+vagrant@minikube:~$ sudo minikube stop
+Stopping local Kubernetes cluster...
+Machine stopped.
+vagrant@minikube:~$ sudo minikube start
+Starting local Kubernetes v1.13.2 cluster...
+Starting VM...
+~~~
+
+
+## ダッシュボードの利用
 
 ~~~
 $ sudo minikube dashboard
