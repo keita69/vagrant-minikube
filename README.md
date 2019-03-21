@@ -52,7 +52,7 @@ $ vagrant destroy
 ## 注意事項
 
 * この動作環境では、ダッシュボードは利用できません。
-
+* もしminikube delete を実行した場合は、/usr/local/bin/minikube start --vm-driver none で起動してください。
 
 ## 参考資料
 
