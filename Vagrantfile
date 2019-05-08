@@ -10,10 +10,12 @@ Vagrant.configure("2") do |config|
     machine.vm.box = "ubuntu/xenial64"
     machine.vm.hostname = 'minikube'
     machine.vm.network :private_network,ip: "172.16.10.10"
+    config.vm.network :forwarded_port, guest: 80, host: 80
+    config.vm.network :forwarded_port, guest: 443, host: 443
     machine.vm.provider "virtualbox" do |vbox|
       vbox.gui = false        
       vbox.cpus = 2
-      vbox.memory = 2048
+      vbox.memory = 10240
     end
 
     ## Ansible

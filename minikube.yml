@@ -2,136 +2,138 @@
   connection: local
   become: yes
   gather_facts: True
-  
+
   tasks:
+    ## Docker CE のインストール
+    #
+    - name: Add Docker GPG key
+      apt_key: url=https://download.docker.com/linux/ubuntu/gpg
 
-  ## Docker CE のインストール
-  #
-  - name: Add Docker GPG key
-    apt_key: url=https://download.docker.com/linux/ubuntu/gpg
+    - name: Add Docker APT repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable
 
-  - name: Add Docker APT repository
-    apt_repository:
-      repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable
+    - name: Install packages
+      apt:
+        name:
+          [
+            "apt-transport-https",
+            "ca-certificates",
+            "curl",
+            "software-properties-common",
+            "nfs-common",
+          ]
+        state: present
+        update_cache: yes
 
-  - name: Install packages
-    apt:
-      name: ['apt-transport-https', 'ca-certificates', 'curl', 'software-properties-common', 'nfs-common']
-      state: present
-      update_cache: yes
+    - name: Install Docker-CE
+      apt:
+        # name: docker-ce=17.03.2~ce-0~ubuntu-xenial
+        # name: docker-ce=17.12.1~ce-0~ubuntu
+        name: docker-ce=18.06.2~ce~3-0~ubuntu
+        state: present
+        update_cache: yes
 
-  - name: Install Docker-CE
-    apt:
-      # name: docker-ce=17.03.2~ce-0~ubuntu-xenial
-      # name: docker-ce=17.12.1~ce-0~ubuntu
-      name: docker-ce=18.06.2~ce~3-0~ubuntu      
-      state: present
-      update_cache: yes
+    - name: usermod -aG docker vagrant
+      user:
+        name: vagrant
+        groups: docker
 
-  - name: usermod -aG docker vagrant
-    user:
-      name: vagrant
-      groups: docker
+    ## カーネル設定変更
+    #
+    - name: Set sysctl
+      sysctl:
+        name: net.bridge.bridge-nf-call-iptables
+        value: 1
+        sysctl_set: yes
+        sysctl_file: /etc/sysctl.conf
+        state: present
+        reload: yes
 
-  ## カーネル設定変更
-  #
-  - name: Set sysctl 
-    sysctl:
-      name: net.bridge.bridge-nf-call-iptables
-      value: 1
-      sysctl_set: yes
-      sysctl_file: /etc/sysctl.conf      
-      state: present
-      reload: yes
+    ## GlusterFS のインストール
+    #
+    - name: Add GlusterFS Repository
+      apt_repository:
+        repo: ppa:gluster/glusterfs-3.12
 
-  ## GlusterFS のインストール
-  #
-  - name: Add GlusterFS Repository
-    apt_repository:
-      repo: ppa:gluster/glusterfs-3.12
+    - name: Install GlusterFS
+      apt:
+        name: glusterfs-client
+        state: present
+        update_cache: yes
 
-  - name: Install GlusterFS
-    apt:
-      name: glusterfs-client
-      state: present
-      update_cache: yes
+    ## kubectl コマンドのインストール
+    #
+    - name: download
+      get_url:
+        url: https://storage.googleapis.com/kubernetes-release/release/v1.13.4/bin/linux/amd64/kubectl
+        dest: /usr/local/bin/
+        mode: 0755
+        owner: root
+        group: root
 
+    - name: download
+      get_url:
+        url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        dest: /usr/local/bin/minikube
+        mode: 0755
+        owner: root
+        group: root
 
-  ## kubectl コマンドのインストール
-  #
-  - name: download
-    get_url:
-      url: https://storage.googleapis.com/kubernetes-release/release/v1.13.4/bin/linux/amd64/kubectl
-      dest: /usr/local/bin/
-      mode: 0755
-      owner: root
-      group: root
+    ## Start Minikube
+    #
+    - name: start Minikube temporary
+      command: /usr/local/bin/minikube start --vm-driver none
+      args:
+        chdir: /root
+      register: mini
 
-  - name: download
-    get_url:
-      url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-      dest: /usr/local/bin/minikube
-      mode: 0755
-      owner: root
-      group: root
+    ## Wait start containers
+    #
+    - name: waiting
+      command: sleep 30
 
+    ## stop minikube
+    #
+    - name: stopping Minikube
+      command: /usr/local/bin/minikube stop
 
-  ## Start Minikube
-  #
-  - name: start Minikube temporary
-    command: /usr/local/bin/minikube start --vm-driver none
-    args:
-      chdir: /root
-    register: mini      
+    ## Wait stop completely
+    #
+    - name: waiting
+      command: sleep 30
 
-  ## Wait start containers
-  #
-  - name: waiting
-    command: sleep 30
+    ## move .minikube and .kube
+    #
+    #- name: cp /root/.kube  /home/vagrant/.kube
+    #  copy:
+    #    src: /root/.kube
+    #    dest: /home/vagrant/.kube
+    #    owner: vagrant
+    #    group: vagrant
+    #    mode: 0755
 
-  ## stop minikube
-  #
-  - name: stopping Minikube
-    command: /usr/local/bin/minikube stop
+    #- name: cp /root/.minikube  /home/vagrant/.minikube
+    #  copy:
+    #    src: /root/.minikube
+    #    dest: /home/vagrant/.minikube
+    #    owner: vagrant
+    #    group: vagrant
+    #    mode: 0755
 
-  ## Wait stop completely
-  #
-  - name: waiting
-    command: sleep 30
+    - shell: mv /root/.kube /home/vagrant/.kube
+    - shell: chown -R vagrant:vagrant /home/vagrant/.kube
 
-  ## move .minikube and .kube
-  #
-  #- name: cp /root/.kube  /home/vagrant/.kube
-  #  copy:
-  #    src: /root/.kube
-  #    dest: /home/vagrant/.kube
-  #    owner: vagrant
-  #    group: vagrant
-  #    mode: 0755
-      
-  #- name: cp /root/.minikube  /home/vagrant/.minikube
-  #  copy:
-  #    src: /root/.minikube
-  #    dest: /home/vagrant/.minikube
-  #    owner: vagrant
-  #    group: vagrant
-  #    mode: 0755
+    - shell: mv /root/.minikube /home/vagrant/.minikube
+    - shell: chown -R vagrant:vagrant /home/vagrant/.minikube
 
-  - shell: mv /root/.kube /home/vagrant/.kube
-  - shell: chown -R vagrant:vagrant /home/vagrant/.kube
-
-  - shell: mv /root/.minikube /home/vagrant/.minikube
-  - shell: chown -R vagrant:vagrant /home/vagrant/.minikube
-
-
-  - name: change path
-    command: sed -i -e 's|root|home\/vagrant|g' /home/vagrant/.kube/config
-
-  ## restart minikube under /home/vagrant
-  #
-  #- name: restart minikube
-  #  become: yes
-  #  become_user: vagrant
-  #  command: sudo /usr/local/bin/minikube start --vm-driver none
-  #  args:
-  #    chdir: /home/vagrant
+    - name: change path
+      command: sed -i -e 's|root|home\/vagrant|g' /home/vagrant/.kube/config
+    ## restart minikube under /home/vagrant
+    #
+    #- name: restart minikube
+    #  become: yes
+    #  become_user: vagrant
+    #  command: sudo /usr/local/bin/minikube start --vm-driver none
+    #  args:
+    #    chdir: /home/vagrant

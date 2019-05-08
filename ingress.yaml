@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: myingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    # add hostname in C:\Windows\System32\drivers\etc\hosts
+    # [example]
+    #	127.0.0.1      localhost
+    # 172.16.10.10   kubernetes-dashboard kubernetes-dashboard.local
+    - host: kubernetes-dashboard.local
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: kubernetes-dashboard
+              servicePort: 80

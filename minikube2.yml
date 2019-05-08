@@ -1,0 +1,34 @@
+- hosts: minikube
+  connection: local
+  become: yes
+  gather_facts: True
+
+  tasks:
+    ## Start Minikube
+    #
+    - name: start Minikube temporary
+      command: /usr/local/bin/minikube start --vm-driver none
+      args:
+        chdir: /root
+      register: mini
+
+    ## Wait start containers
+    #
+    - name: waiting
+      command: sleep 30
+
+    ## kubectl completion
+    - shell: kubectl completion bash >> /etc/profile
+
+    ## minikube addons
+    - shell: minikube addons enable dashboard
+    - shell: minikube addons enable ingress
+
+    ## ingress
+    ## view kubernetes-dashboard
+    - lineinfile:
+        path: /etc/hosts
+        line: "127.0.1.1       kubernetes-dashboard kubernetes-dashboard"
+        insertafter: "EOF"
+
+    - shell: kubectl apply -f ingress.yaml -n kube-system

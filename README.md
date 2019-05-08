@@ -1,3 +1,10 @@
+# minikube addons
+```
+sudo minikube addons enable dashboard
+sudo minikube addons enable ingress
+```
+
+===== README.md of orginal fork ===== 
 # vagrant-minikube
 
 この Vagrant と Ansible のコードは、VirtualBox の仮想サーバー上に、Minikubeを起動するためのものです。
